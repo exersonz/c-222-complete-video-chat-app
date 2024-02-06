@@ -26,35 +26,30 @@ navigator.mediaDevices
             connectToNewUser(userId, stream);
         });
 
-        // you are already in the video call and seeing others joining one by one
         peer.on("call", (call) => {
             call.answer(stream);
             const video = document.createElement("video");
-
-            // checks/monitors stream of the new person who joins the call after I have joined
             call.on("stream", (userVideoStream) => {
                 addVideoStream(video, userVideoStream);
             });
-        })
+        });
     })
 
-// function to append another user's video into the video grid
-function addVideoStream(video, stream) {
-    video.srcObject = stream;
-    video.addEventListener("loadedmetadata", () => {
-        video.play();
-        $("#video_grid").append(video);
-    });
-};
-
-function connectToNewUser(userId, stream){
-    // calling peer to receive streams or answer their calls
+function connectToNewUser(userId, stream) {
     const call = peer.call(userId, stream);
     const video = document.createElement("video");
     call.on("stream", (userVideoStream) => {
         addVideoStream(video, userVideoStream);
     });
-}
+};
+
+function addVideoStream(video, stream) {
+    video.srcObject = stream;
+    video.addEventListener("loadedmetadata", () => {
+        video.play();
+        $("#video_grid").append(video)
+    });
+};
 
 $(function () {
     $("#show_chat").click(function () {
@@ -82,51 +77,47 @@ $(function () {
         }
     })
 
-    $("#stop_video").click(function(){
-        // fetching wheter or not the system has enabled video and toggling it when pressing mute btn
-        const enabled = myStream.getVideoTracks()[0].enabled;
-        if(enabled){
-            myStream.getVideoTracks()[0].enabled = false;
-            html = `<i class = "fa fa-video-slash"></i>`;
-            $("#stop_video").toggleClass("background_red");
-            $("#stop_video").html(html); // applying changes
-        }
-        else{
-            myStream.getVideoTracks()[0].enabled = true;
-            html = `<i class = "fa fa-video"></i>`;
-            $("#stop_video").toggleClass("background_blue");
-            $("#stop_video").html(html); // applying changes
-        }
-    })
-
-    $("#mute_button").click(function(){
-        // fetching wheter or not the system has enabled audio and toggling it when pressing mute btn
+    $("#mute_button").click(function () {
         const enabled = myStream.getAudioTracks()[0].enabled;
-        if(enabled){
+        if (enabled) {
             myStream.getAudioTracks()[0].enabled = false;
-            html = `<i class = "fa fa-microphone-slash"></i>`;
+            html = `<i class="fas fa-microphone-slash"></i>`;
             $("#mute_button").toggleClass("background_red");
-            $("#mute_button").html(html); // applying changes
-        }
-        else{
+            $("#mute_button").html(html)
+        } else {
             myStream.getAudioTracks()[0].enabled = true;
-            html = `<i class = "fa fa-microphone"></i>`;
-            $("#mute_button").toggleClass("background_blue");
-            $("#mute_button").html(html); // applying changes
+            html = `<i class="fas fa-microphone"></i>`;
+            $("#mute_button").toggleClass("background_red");
+            $("#mute_button").html(html)
         }
     })
 
-    $("#invite_button").click(function(){
-        const to = prompt("Enter the recipient's email address for sharing: ")
+    $("#stop_video").click(function () {
+        const enabled = myStream.getVideoTracks()[0].enabled;
+        if (enabled) {
+            myStream.getVideoTracks()[0].enabled = false;
+            html = `<i class="fas fa-video-slash"></i>`;
+            $("#stop_video").toggleClass("background_red");
+            $("#stop_video").html(html)
+        } else {
+            myStream.getVideoTracks()[0].enabled = true;
+            html = `<i class="fas fa-video"></i>`;
+            $("#stop_video").toggleClass("background_red");
+            $("#stop_video").html(html)
+        }
+    })
+
+    $("#invite_button").click(function() {
+        const to = prompt("Enter the email address of who you're sharing: ");
         let data = {
-            url: window.location.href,
+            url: window.location.href, // fetches the url that WE are on
             to: to
         }
 
         $.ajax({
             url: '/send-mail',
             type: 'post',
-            data: JSON.stringify(data),
+            data: JSON.stringify(data), // convert JSON --> string
             dataType: 'json',
             contentType: 'application/json',
             success: function(result){
